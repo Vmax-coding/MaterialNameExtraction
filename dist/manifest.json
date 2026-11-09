@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "素材名称提取器",
+  "version": "1.0.0",
+  "description": "本地提取素材名称，自动合并多尺寸，按语言筛选、搜索和批量复制。无需上传素材。",
+  "action": {"default_title": "打开素材名称提取器", "default_icon": {"16":"icons/16.png","32":"icons/32.png"}},
+  "icons": {"16":"icons/16.png","32":"icons/32.png","48":"icons/48.png","128":"icons/128.png"},
+  "background": {"service_worker": "background.js"},
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'; connect-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; base-uri 'self'; form-action 'none'"}
+}
