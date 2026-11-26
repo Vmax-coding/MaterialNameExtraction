@@ -93,7 +93,7 @@ export default function App() {
         {counts.map(([name, count]) => <button key={name} className={language === name ? 'language active' : 'language'} onClick={() => chooseLanguage(name)}><span><span className="language-dot" />{name}</span><b>{count}</b></button>)}
       </nav>
       <div className="local-note"><SafetyCertificateOutlined /><strong>素材只在本地处理</strong><p>仅读取文件名称，不读取视频内容，不上传素材。</p><small>下次打开保留名称列表；原文件不会被修改。</small></div>
-      <div className="version">本地工具 <span>v1.1.0</span></div>
+      <div className="version">本地工具 <span>v1.2.0</span></div>
     </aside>
     <main>
 
