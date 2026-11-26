@@ -9,7 +9,7 @@ export default defineConfig({
       },
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) return 'vendor';
+          if (id.includes('node_modules')) return id.includes('/exceljs/') || id.includes('/jszip/') || id.includes('/pako/') ? 'excel' : 'vendor';
         },
       },
     },

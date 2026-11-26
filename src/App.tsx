@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { App as AntApp, Alert, Button, Checkbox, Empty, Input, Modal, Select, Space, Table, Tag, Tooltip } from 'antd';
 import { CheckOutlined, CopyOutlined, FileOutlined, FolderOpenOutlined, PlusOutlined, SearchOutlined, ClearOutlined, SafetyCertificateOutlined, AppstoreOutlined } from '@ant-design/icons';
+import MaterialSheet from './MaterialSheet';
 import { groupFiles, filterRows, copyTextForRows } from './extract.mjs';
 
 type FileMeta = { name: string; path: string };
@@ -23,7 +24,7 @@ async function clipboard(text: string) {
 }
 
 export default function App() {
-  const { message } = AntApp.useApp();
+  const { message, modal } = AntApp.useApp();
   const folderRef = useRef<HTMLInputElement>(null);
   const filesRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<FileMeta[]>(restore);
@@ -92,10 +93,10 @@ export default function App() {
         {counts.map(([name, count]) => <button key={name} className={language === name ? 'language active' : 'language'} onClick={() => chooseLanguage(name)}><span><span className="language-dot" />{name}</span><b>{count}</b></button>)}
       </nav>
       <div className="local-note"><SafetyCertificateOutlined /><strong>素材只在本地处理</strong><p>仅读取文件名称，不读取视频内容，不上传素材。</p><small>下次打开保留名称列表；原文件不会被修改。</small></div>
-      <div className="version">本地工具 <span>v1.0.0</span></div>
+      <div className="version">本地工具 <span>v1.1.0</span></div>
     </aside>
     <main>
-      <header><div><div className="eyebrow">CREATIVE WORKSPACE</div><h1>好素材，名称一键就绪。</h1><p>合并不同尺寸，按语言整理，随选随复制。</p></div><Tag className="offline-tag"><span className="status-dot" /> 本地运行 · 无需上传</Tag></header>
+
       <section className="import-card">
         <div className="folder-art"><FolderOpenOutlined /></div>
         <div className="import-copy"><h2>选择你的素材文件夹</h2><p>自动包含子文件夹，提取尺寸前的完整名称并去重。</p><div className="sample">葡萄牙语-冰块拆脚底螺丝_XYY_TSY<span>-16x9_Screw_261104.mp4</span></div></div>
@@ -110,8 +111,9 @@ export default function App() {
         <div><span>合并重复名称</span><strong>{(mediaCount - rows.length).toLocaleString()}<small>条</small></strong></div>
         <div><span>覆盖语言</span><strong>{counts.length}<small>种</small></strong></div>
       </section>
+      <MaterialSheet rows={rows} copy={copy} />
       <section className="results-card">
-        <div className="results-title"><div><h2>{language || '全部素材'}<Tag>{filtered.length} 条名称</Tag></h2><p>复制内容保留语言和人员缩写，每个名称占一行。</p></div><Button icon={<ClearOutlined />} disabled={!files.length || busy} onClick={() => Modal.confirm({ title: '清空名称列表？', content: '只清除本机保存的名称记录，不会删除或修改素材文件。', okText: '清空列表', cancelText: '取消', onOk: () => { persist([]); setSelected([]); setLanguage(''); setPage(1); } })}>清空列表</Button></div>
+        <div className="results-title"><div><h2>{language || '全部素材'}<Tag>{filtered.length} 条名称</Tag></h2><p>复制内容保留语言和人员缩写，每个名称占一行。</p></div><Button icon={<ClearOutlined />} disabled={!files.length || busy} onClick={() => modal.confirm({ title: '清空名称列表？', content: '只清除本机保存的名称记录，不会删除或修改素材文件。', okText: '清空列表', cancelText: '取消', onOk: () => { persist([]); setSelected([]); setLanguage(''); setPage(1); } })}>清空列表</Button></div>
         <div className="filters"><Input className="search" size="large" prefix={<SearchOutlined />} placeholder="搜索素材名称、关键词或人员缩写" aria-label="搜索素材" allowClear value={search} onChange={event => { setSearch(event.target.value); resetPage(); }} /><Select size="large" aria-label="语言" value={language} onChange={chooseLanguage} options={[{ value: '', label: '全部语言' }, ...counts.map(([name, count]) => ({ value: name, label: `${name} (${count})` }))]} /><Checkbox checked={onlyUnrecognized} onChange={event => { setOnlyUnrecognized(event.target.checked); resetPage(); }}>仅待检查{uncertain ? ` (${uncertain})` : ''}</Checkbox></div>
         <div className="selection-bar"><Space wrap><span>已选 <b>{selected.length}</b> 条</span>{selected.length > visibleSelected && <span className="muted">含筛选外 {selected.length - visibleSelected} 条</span>}<Button type="link" size="small" disabled={!filtered.length} onClick={() => setSelected([...new Set([...selected, ...filtered.map(row => row.key)])])}>选择全部筛选结果</Button><Button type="link" size="small" disabled={!selected.length} onClick={() => setSelected([])}>取消选择</Button></Space><Space><Button disabled={!filtered.length} icon={<CopyOutlined />} onClick={() => void copy(filtered.map(row => row.name).join('\n'))}>复制筛选结果</Button><Button type="primary" disabled={!selected.length} icon={<CopyOutlined />} onClick={() => void copy(copyTextForRows(rows, selected))}>复制已选 ({selected.length})</Button></Space></div>
         <Table<Row> rowKey="key" dataSource={filtered} loading={busy} rowSelection={{ selectedRowKeys: selected, preserveSelectedRowKeys: true, onChange: setSelected }} pagination={{ current: page, pageSize, total: filtered.length, showSizeChanger: true, pageSizeOptions: [20, 50, 100], showTotal: total => `共 ${total} 条`, onChange: (next, size) => { setPage(size !== pageSize ? 1 : next); setPageSize(size); } }} locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={rows.length ? '没有找到匹配的素材，试试其他关键词或语言' : '选择文件夹，开始整理素材名称'} /> }} scroll={{ x: 780 }} columns={[
